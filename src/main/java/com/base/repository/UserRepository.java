@@ -11,6 +11,6 @@ import java.util.Optional;
  * @author YISivlay
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, String> {
+public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 }

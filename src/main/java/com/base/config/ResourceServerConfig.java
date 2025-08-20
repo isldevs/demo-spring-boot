@@ -4,6 +4,7 @@ package com.base.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -30,10 +31,15 @@ public class ResourceServerConfig {
     @Bean
     SecurityFilterChain resourceServer(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/**") // ONLY match /api/** endpoints
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .securityMatcher("/api/**")                                     // apply only to /api/** endpoints
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/public/**").permitAll()          // allow some APIs without auth
+                        .anyRequest().authenticated()                             // require access token for others
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                );
+
         return http.build();
     }
 

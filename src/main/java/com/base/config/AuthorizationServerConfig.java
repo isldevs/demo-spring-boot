@@ -14,6 +14,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -43,20 +45,26 @@ public class AuthorizationServerConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
+        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
+                new OAuth2AuthorizationServerConfigurer();
+
         http
+                // Match OAuth2 endpoints only
                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/oauth2/token", "/oauth2/introspect"))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/oauth2/token", "/oauth2/introspect").permitAll()
+                        .anyRequest().authenticated()
+                )
+                // OAuth2 endpoints
                 .with(authorizationServerConfigurer, Customizer.withDefaults())
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-                .csrf(csrf -> csrf.ignoringRequestMatchers(
-                        "/oauth2/token",
-                        "/oauth2/introspect",
-                        "/oauth2/revoke"
-                ));
+                // Session management
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                // Disable form login, use REST login
+                .httpBasic(Customizer.withDefaults()); // optional for REST login
 
         return http.build();
     }
-
 
     @Bean
     public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
@@ -67,12 +75,12 @@ public class AuthorizationServerConfig {
                     .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                     .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                     .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                    .redirectUri("http://localhost:8080/callback")
+                    .redirectUri("http://localhost:8080/callback")  // Frontend redirect
                     .scope("read")
                     .scope("write")
                     .clientSettings(ClientSettings.builder()
-                            .requireProofKey(true)          // PKCE enabled
-                            .requireAuthorizationConsent(true)
+                            .requireProofKey(true)
+                            .requireAuthorizationConsent(false)
                             .build())
                     .tokenSettings(TokenSettings.builder()
                             .accessTokenTimeToLive(Duration.ofMinutes(10))

@@ -19,6 +19,10 @@ public class Authority {
     protected Authority() {
     }
 
+    public Authority(String name) {
+        this.name = name;
+    }
+
     public Long getId() {
         return id;
     }

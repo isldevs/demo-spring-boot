@@ -30,6 +30,11 @@ public class Role {
     protected Role() {
     }
 
+    public Role(String name, Set<Authority> authorities) {
+        this.name = name;
+        this.authorities = authorities;
+    }
+
     public Long getId() {
         return id;
     }
