@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class JwtCustomizerService implements OAuth2TokenCustomizer<JwtEncodingContext> {
+
     @Override
     public void customize(JwtEncodingContext context) {
         if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {

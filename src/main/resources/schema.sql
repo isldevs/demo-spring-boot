@@ -96,8 +96,8 @@ INSERT INTO authorities(name) VALUES ('DELETE_PRIVILEGE') ON CONFLICT DO NOTHING
 -- ---------------------------
 -- Roles
 -- ---------------------------
-INSERT INTO roles(name) VALUES ('ROLE_USER') ON CONFLICT DO NOTHING;
 INSERT INTO roles(name) VALUES ('ROLE_ADMIN') ON CONFLICT DO NOTHING;
+INSERT INTO roles(name) VALUES ('ROLE_USER') ON CONFLICT DO NOTHING;
 
 -- ---------------------------
 -- Role -> Authorities mapping
@@ -124,7 +124,7 @@ ON CONFLICT DO NOTHING;
 -- ---------------------------
 INSERT INTO users(username, password, enabled)
 VALUES ('admin',
-        '$2a$10$u1Xz4m0b7sVPRV1NTPv0zOeJ7NV1i0VvA8R8xvVYhX1FsUqk/6b6K', -- BCrypt: password "admin123"
+        '{bcrypt}$2a$10$7sPC8bG3Qz4zH8MAB3xmuOqA89QpoQtEV9Tq4s7lE5TrfOi/yDg1K', -- BCrypt: password
         true)
 ON CONFLICT DO NOTHING;
 
