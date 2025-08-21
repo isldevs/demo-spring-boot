@@ -1,6 +1,5 @@
 package com.base.controller;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,10 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -24,14 +20,12 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class LoginController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
     @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public LoginController(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
@@ -42,7 +36,6 @@ public class LoginController {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // Optional: create a session manually
             httpRequest.getSession(true);
 
             return ResponseEntity.ok(Map.of(
@@ -55,8 +48,8 @@ public class LoginController {
         }
     }
 
-    // DTO
     public static class LoginRequest {
+
         private String username;
         private String password;
 

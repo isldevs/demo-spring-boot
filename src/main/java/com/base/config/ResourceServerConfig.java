@@ -4,10 +4,11 @@ package com.base.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -16,28 +17,36 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class ResourceServerConfig {
 
+    private static final int RESOURCE_SERVER_ORDER = 2;
+
     @Bean
-    @Order(2)
+    @Order(RESOURCE_SERVER_ORDER)
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         var converter = new JwtGrantedAuthoritiesConverter();
         converter.setAuthoritiesClaimName("authorities");
-        converter.setAuthorityPrefix(""); // keep ROLE_ prefix
+        converter.setAuthorityPrefix("ROLE_"); // Keep standard Spring Security prefix
 
         var jwtConverter = new JwtAuthenticationConverter();
         jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
+        jwtConverter.setPrincipalClaimName("sub"); // Use subject as principal name
         return jwtConverter;
     }
 
     @Bean
     SecurityFilterChain resourceServer(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/**")                                     // apply only to /api/** endpoints
+                .securityMatcher("/api/**", "/userinfo")
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**").permitAll()          // allow some APIs without auth
-                        .anyRequest().authenticated()                             // require access token for others
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/userinfo").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
                 );
 
         return http.build();
