@@ -32,3 +32,5 @@ spring:
 logging:
   level:
     org.springframework.security: trace
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.jdbc.core: DEBUG

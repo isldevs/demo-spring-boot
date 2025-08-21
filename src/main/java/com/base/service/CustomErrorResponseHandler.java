@@ -14,6 +14,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,7 @@ import java.util.Map;
 /**
  * @author YISivlay
  */
+@Component
 public class CustomErrorResponseHandler implements AuthenticationFailureHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
